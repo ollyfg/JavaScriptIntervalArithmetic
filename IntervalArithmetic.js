@@ -1,14 +1,10 @@
 ﻿;(function (window) {    
-    if (typeof zizhujy == "undefined") {
-        zizhujy = {};
-        window.zizhujy = zizhujy;
+    if (typeof intervalHelper == "undefined") {
+        intervalHelper = {};
+        window.intervalHelper = intervalHelper;
     }
 
-    if (typeof zizhujy.com == "undefined") {
-        zizhujy.com = {};
-    }
-
-    zizhujy.com.TupperIntervalArithmetic = {
+    intervalHelper = {
         constantValue: function(v){
             return {val:[v, v], def:[true, true]};
         },
@@ -17,9 +13,7 @@
             return this.constantValue(0);
         },
         
-        /// <Summary>
-        /// [a, b] + [c, d] = [min (a + c, a + d, b + c, b + d), max (a + c, a + d, b + c, b + d)] = [a + c, b + d]
-        /// </Summary>
+        // [a, b] + [c, d] = [min (a + c, a + d, b + c, b + d), max (a + c, a + d, b + c, b + d)] = [a + c, b + d]
         add: function(interval1, interval2){
             return {
                 val: [interval1.val[0] + interval2.val[0], interval1.val[1] + interval2.val[1]],
@@ -27,16 +21,16 @@
             };
         },
 
-        /// <Summary>
-        /// [a, b] − [c, d] = [min (a − c, a − d, b − c, b − d), max (a − c, a − d, b − c, b − d)] = [a − d, b − c]
-        /// </Summary>
+        // [a, b] − [c, d] = [min (a − c, a − d, b − c, b − d), max (a − c, a − d, b − c, b − d)] = [a − d, b − c]
         subtract: function(interval1, interval2){
             return {
                 val: [interval1.val[0] - interval2.val[1], interval1.val[1] - interval2.val[0]],
                 def: [interval1.def[0] && interval2.def[0], interval1.def[1] && interval2.def[1]]
             };
         },
-
+        
+        // Return the negative interval
+        // - [a,b] = [-a,-b]
         negative: function(interval){
             return {
                 val: [-interval.val[1], -interval.val[0]],
@@ -44,9 +38,7 @@
             };
         },
 
-        /// <Summary>
-        /// [a, b] × [c, d] = [min (a × c, a × d, b × c, b × d), max (a × c, a × d, b × c, b × d)]
-        /// </Summary>
+        // [a, b] × [c, d] = [min (a × c, a × d, b × c, b × d), max (a × c, a × d, b × c, b × d)]
         multiply: function(interval1, interval2){
             var a = interval1.val[0], b = interval1.val[1];
             var c = interval2.val[0], d = interval2.val[1];
@@ -62,18 +54,11 @@
             };
         },
 
-        /// <Summary>
-        /// [a, b] ÷ [c, d] = [min (a ÷ c, a ÷ d, b ÷ c, b ÷ d), max (a ÷ c, a ÷ d, b ÷ c, b ÷ d)] 
-        /// when 0 is not in [c, d].
-        /// </Summary>
+        // [a, b] ÷ [c, d] = [min (a ÷ c, a ÷ d, b ÷ c, b ÷ d), max (a ÷ c, a ÷ d, b ÷ c, b ÷ d)] 
+        // when 0 is not in [c, d].
         divide: function(interval1, interval2){            
             var a = interval1.val[0], b = interval1.val[1];
             var c = interval2.val[0], d = interval2.val[1];
-
-//            if(c <= 0 && d >= 0){
-//                throw "Can't be divided by 0. [{0}, {1}]/[{2}, {3}].".format(a, b, c, d);                
-//            }
-
             var ac = a/c, ad = a/d, bc = b/c, bd = b/d;
 
             if(c <= 0 && d >= 0){
@@ -95,13 +80,12 @@
             }
         },
 
-        /// <Summary>
-        ///     Odd powers: [x1, x2]^n = [x1^n, x2^n], for odd n <- N.
-        ///     Even powers:
-        ///         [x1, x2]^n = [x1^n, x2^n], if x1 >= 0
-        ///         [x1, x2]^n = [x2^n, x1^n], if x2 <  0
-        ///         [x1, x2]^n = [0, max{x1^n, x2^n}], otherwise
-        /// </Summary>
+        //    Powers:
+        //      Odd powers: [x1, x2]^n = [x1^n, x2^n], for odd n <- N.
+        //      Even powers:
+        //       [x1, x2]^n = [x1^n, x2^n], if x1 >= 0
+        //       [x1, x2]^n = [x2^n, x1^n], if x2 <  0
+        //       [x1, x2]^n = [0, max{x1^n, x2^n}], otherwise
         pow: function(interval1, interval2){
             if(interval2.val[0] == interval2.val[1]){
                 var n = interval2.val[0];
@@ -142,7 +126,7 @@
                 throw "Don't know how to calculate it yet.";
             }
         },
-
+        
         greaterThan: function(interval1, interval2){
             return {
                 val: [interval1.val[0] > interval2.val[1], interval1.val[1] > interval2.val[0]],
@@ -199,7 +183,8 @@
         not: function(interval){
             return {val: [!interval.val[1], !interval.val[0]], def: interval.def};
         },
-
+        
+        // Calculate the sine of an interval
         sin: function(interval){
             var l = Math.sin(interval.val[0]);
             var t = Math.sin(interval.val[1]);
@@ -215,6 +200,7 @@
             return {val: [min, max], def: [true, true]};
         }, 
 
+        // Calculate the cosine of an interval
         cos: function(interval){
             var l = Math.cos(interval.val[0]);
             var t = Math.cos(interval.val[1]);
@@ -230,7 +216,8 @@
 
             return {val: [min, max], def: [true, true]};
         },
-
+        
+        // Calculate the tangent of an interval
         tan: function(interval){
             var l = Math.tan(interval.val[0]);
             var t = Math.tan(interval.val[1]);
@@ -246,11 +233,13 @@
                 return {val: [-Infinity, Infinity], def: [false, true]};
             }
         },
-
+        
+        // Calculate the cot of an interval = 1/tan(interval)
         cot: function(interval){
             return this.divide(this.constantValue(1), this.tan(interval));
         },
-
+        
+        // Calculate the arc-sine of an interval
         arcsin: function(interval){
             var l = Math.asin(interval.val[0]);
             var t = Math.asin(interval.val[1]);
@@ -260,7 +249,8 @@
             else if (isNaN(l) || isNaN(t)) def = [false, interval.def[1]];
             return {val: [l, t], def: def};
         },
-
+        
+        // Calculate the arc-cosine of an interval
         arccos: function(interval){            
             var l = Math.acos(interval.val[1]);
             var t = Math.acos(interval.val[0]);
@@ -270,7 +260,8 @@
             else if (isNaN(l) || isNaN(t)) def = [false, interval.def[1]];
             return {val: [l, t], def: def};
         },
-
+        
+        // Calculate the arc-tangent of an interval
         arctan: function(interval){
             var l = Math.atan(interval.val[0]);
             var t = Math.atan(interval.val[1]);
@@ -280,7 +271,8 @@
             else if (isNaN(l) || isNaN(t)) def = [false, interval.def[1]];
             return {val: [l, t], def: def};
         },
-
+        
+        // Calculate the arc-cot of an interval
         arccot: function(interval){              
             var l = Math.acot(interval.val[1]);
             var t = Math.acot(interval.val[0]);
@@ -290,7 +282,8 @@
             else if (isNaN(l) || isNaN(t)) def = [false, interval.def[1]];
             return {val: [l, t], def: def};
         },
-
+        
+        // Calculate the sec of an interval
         sec: function (interval){
             interval = this.cos(interval);
             if(this.greaterThan(interval, this.zero()).val.equals([true, true]) || this.greaterThan(this.zero(), interval).val.equals([true, true])){
@@ -299,11 +292,16 @@
                 return {val: [-Infinity, Infinity], def: [false, true]};
             }
         },
-
+        
+        // Calculate the cosec of an interval
         cosec: function(interval){  
             return this.divide(this.constantValue(1), this.sin(interval));
         },
-
+        
+        // Calculate the sign of an interval
+        // - x > 0  => 1
+        // - x == 0 => 0
+        // - x < 0  => -1
         sgn: function(interval){
             // Never use [] == []!!!
             if(this.greaterThan(interval, {val: [0, 0], def: [true, true]}).val.equals([true, true])){
@@ -321,9 +319,7 @@
             return this.sgn(interval);
         },
 
-        /// <Summary>
-        ///     log_a^([x1, x2]) = [log_a^x1, log_a^x2], for positive intervals[x1, x2] and a > 1
-        /// </Summary>
+        // log_a^([x1, x2]) = [log_a^x1, log_a^x2], for positive intervals[x1, x2] and a > 1
         log: function(base, interval2){
             if(base.val[0] == base.val[1]){
                 var a = base.val[0];
@@ -340,7 +336,8 @@
                 throw "Don't know how to compute it yet.";
             }
         },
-
+        
+        // Calculate the natural logarithm of an interval
         ln: function(interval){            
             var l = Math.ln(interval.val[0]);
             var t = Math.ln(interval.val[1]);
@@ -351,10 +348,12 @@
             return {val: [l, t], def: def};
         },
         
+        // Calculate euler's number to the power of each part of an interval
         exp: function(interval){
             return {val: [Math.exp(interval.val[0]), Math.exp(interval.val[1])], def: interval.def};
         },
-
+        
+        // Get the absolute of this interval
         abs: function (interval){
             var min = Math.abs(interval.val[0]);
             var max = Math.abs(interval.val[1]);
@@ -371,7 +370,8 @@
 
             return {val: [min, max], def: interval.def};
         },
-
+        
+        // Square root the interval
         sqrt: function(interval){                    
             var l = Math.sqrt(interval.val[0]);
             var t = Math.sqrt(interval.val[1]);
